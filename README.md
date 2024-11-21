@@ -1,82 +1,74 @@
-### Dokumentasi API Single Sign-On (SSO) Gebyok Kudus
+# **Dokumentasi API Single Sign-On (SSO) Gebyok Kudus**
 
-API Single Sign-On (SSO) Gebyok Kudus memfasilitasi proses autentikasi dan otorisasi terpusat melalui protokol OAuth 2.0. API ini memungkinkan aplikasi client untuk mengakses data profil pengguna setelah pengguna memberikan izin melalui mekanisme OAuth. Berikut ini adalah panduan lengkap untuk mengakses dan menggunakan API SSO Gebyok Kudus.
+API Single Sign-On (SSO) Gebyok Kudus menyediakan layanan autentikasi dan otorisasi terpusat menggunakan protokol OAuth 2.0. API ini memungkinkan aplikasi klien mengakses data pengguna setelah melalui proses otorisasi. 
 
 ---
 
-### Daftar Endpoint
+## **Daftar Endpoint**
 
-1. **Mendapatkan Authorization Code**
-2. **Mendapatkan Access Token**
+1. **Mendapatkan Authorization Code**  
+2. **Mendapatkan Access Token**  
 3. **Mengakses Data Pengguna**
 
 ---
 
-### Endpoint 1: Mendapatkan Authorization Code
+### **1. Endpoint: Mendapatkan Authorization Code**
+- **URL**: `https://gebyokkudus.kuduskab.go.id/oauth/authorize`
+- **Method**: `GET`  
+- **Deskripsi**: Digunakan untuk meminta **Authorization Code** yang akan ditukarkan dengan **Access Token**. Authorization Code ini hanya berlaku satu kali dan memiliki waktu kedaluwarsa.
 
-**URL:** `https://gebyokkudus.kuduskab.go.id/oauth/authorize`  
-**Method:** `GET`  
-**Deskripsi:** Endpoint ini digunakan untuk meminta authorization code yang akan ditukarkan dengan access token. Authorization code ini hanya berlaku sekali dan memiliki masa berlaku terbatas.
+#### **Parameter Permintaan**
+| Nama           | Wajib | Deskripsi                                                                 |
+|-----------------|-------|---------------------------------------------------------------------------|
+| `client_id`     | Ya    | ID unik aplikasi klien yang telah terdaftar di Gebyok Kudus.                   |
+| `redirect_uri`  | Ya    | URL callback untuk menerima kode otorisasi setelah proses login selesai. |
+| `response_type` | Ya    | Jenis respons yang diminta. Untuk Authorization Code, gunakan `code`.    |
+| `scope`         | Ya    | Izin yang diminta oleh aplikasi klien, seperti `view-user`.              |
+| `state`         | Ya    | Nilai unik dari klien untuk mencegah serangan CSRF.                                 |
 
-**Parameter:**
-
-| Nama          | Wajib | Deskripsi                                                                 |
-|---------------|-------|---------------------------------------------------------------------------|
-| `client_id`   | Ya    | ID unik untuk aplikasi client yang telah didaftarkan di server SSO.      |
-| `redirect_uri`| Ya    | URL callback yang akan menerima kode otorisasi setelah pengguna login.   |
-| `response_type` | Ya | Jenis respons yang diminta. Untuk authorization code, gunakan `code`.     |
-| `scope`       | Ya    | Izin yang diminta oleh aplikasi client, seperti `view-user`.            |
-| `state`       | Ya    | Nilai unik yang dihasilkan oleh client untuk mencegah serangan CSRF.    |
-
-**Contoh Permintaan:**
-
+#### **Contoh Permintaan**
 ```http
-GET https://gebyokkudus.kuduskab.go.id/oauth/authorize?client_id=ISI_DENGAN_CLIENT_ID_GEBYOK_KUDUS&redirect_uri=ISI_DENGAN_REDIRECT_URI_CLIENT&response_type=code&scope=view-user&state=ISI_DENGAN_STATE_UNIK
+GET https://gebyokkudus.kuduskab.go.id/oauth/authorize?client_id=123456&redirect_uri=https://client-app.com/callback&response_type=code&scope=view-user&state=xyz123
 ```
 
-**Penjelasan Proses:**
-1. Aplikasi client mengarahkan pengguna ke URL `authorize`.
-2. Pengguna diminta untuk login dan memberikan izin kepada aplikasi client.
-3. Setelah izin diberikan, server SSO mengarahkan pengguna kembali ke `redirect_uri` dengan `authorization code` yang dapat digunakan untuk mendapatkan `access token`.
+#### **Proses**
+1. Aplikasi klien mengarahkan pengguna ke endpoint ini.
+2. Pengguna diminta login dan memberikan izin kepada aplikasi klien.
+3. Setelah izin diberikan, server mengarahkan pengguna kembali ke `redirect_uri` dengan Authorization Code yang akan ditukarkan di endpoint berikutnya.
 
 ---
 
-### Endpoint 2: Mendapatkan Access Token
+### **2. Endpoint: Mendapatkan Access Token**
+- **URL**: `https://gebyokkudus.kuduskab.go.id/oauth/token`
+- **Method**: `POST`  
+- **Deskripsi**: Digunakan untuk menukar **Authorization Code** dengan **Access Token**.
 
-**URL:** `https://gebyokkudus.kuduskab.go.id/oauth/token`  
-**Method:** `POST`  
-**Deskripsi:** Endpoint ini digunakan untuk menukar `authorization code` dengan `access token`. Token ini diperlukan untuk mengakses endpoint lainnya.
+#### **Parameter Permintaan**
+| Nama           | Wajib | Deskripsi                                                                 |
+|-----------------|-------|---------------------------------------------------------------------------|
+| `grant_type`    | Ya    | Jenis grant. Untuk Authorization Code, gunakan `authorization_code`.     |
+| `client_id`     | Ya    | ID unik aplikasi klien yang telah terdaftar di Gebyok Kudus.                   |
+| `client_secret` | Ya    | Kunci rahasia aplikasi klien.                                            |
+| `redirect_uri`  | Ya    | URL callback yang sama dengan yang digunakan saat mendapatkan kode.      |
+| `code`          | Ya    | Authorization Code yang diperoleh dari endpoint sebelumnya.             |
 
-**Parameter:**
+#### **Headers**
+| Header          | Wajib | Deskripsi                               |
+|------------------|-------|-----------------------------------------|
+| `Content-Type`   | Ya    | `application/x-www-form-urlencoded`    |
 
-| Nama           | Wajib | Deskripsi                                                                  |
-|----------------|-------|---------------------------------------------------------------------------|
-| `grant_type`   | Ya    | Jenis grant. Untuk authorization code, gunakan `authorization_code`.      |
-| `client_id`    | Ya    | ID unik untuk aplikasi client yang didaftarkan di SSO server.             |
-| `client_secret`| Ya    | Kunci rahasia yang diperoleh saat mendaftarkan aplikasi client.           |
-| `redirect_uri` | Ya    | URL callback yang sama dengan yang digunakan saat mendapatkan kode.       |
-| `code`         | Ya    | Kode otorisasi yang diperoleh dari endpoint authorize.                    |
-
-**Headers:**
-
-| Header            | Wajib | Deskripsi                               |
-|-------------------|-------|-----------------------------------------|
-| `Content-Type`    | Ya    | `application/x-www-form-urlencoded`    |
-
-**Contoh Permintaan (Menggunakan `curl`):**
-
+#### **Contoh Permintaan**
 ```bash
 curl -X POST "https://gebyokkudus.kuduskab.go.id/oauth/token" \
 -H "Content-Type: application/x-www-form-urlencoded" \
 -d "grant_type=authorization_code" \
--d "client_id=ISI_DENGAN_CLIENT_ID_GEBYOK_KUDUS" \
--d "client_secret=ISI_DENGAN_CLIENT_SECRET_GEBYOK_KUDUS" \
--d "redirect_uri=ISI_DENGAN_REDIRECT_URI_CLIENT" \
--d "code=ISI_DENGAN_AUTHORIZATION_CODE"
+-d "client_id=123456" \
+-d "client_secret=abcdef" \
+-d "redirect_uri=https://client-app.com/callback" \
+-d "code=authorization_code_here"
 ```
 
-**Contoh Respons Berhasil:**
-
+#### **Contoh Respons**
 ```json
 {
     "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
@@ -85,34 +77,30 @@ curl -X POST "https://gebyokkudus.kuduskab.go.id/oauth/token" \
 }
 ```
 
-**Penjelasan Proses:**
-1. Aplikasi client mengirimkan `authorization code` dan detail lain ke endpoint `token`.
-2. Server mengembalikan `access token` dan `token_type`.
-3. Access token ini digunakan untuk mengakses data pengguna di endpoint berikutnya.
+#### **Proses**
+1. Aplikasi klien mengirimkan permintaan dengan Authorization Code dan detail lainnya.
+2. Server memberikan **Access Token** yang dapat digunakan untuk mengakses data pengguna di endpoint berikutnya.
+3. **Access Token** memiliki waktu kedaluwarsa (dalam detik, misalnya `3600` detik).
 
 ---
 
-### Endpoint 3: Mengakses Data Pengguna
+### **3. Endpoint: Mengakses Data Pengguna**
+- **URL**: `https://gebyokkudus.kuduskab.go.id/api/user-sso`
+- **Method**: `GET`  
+- **Deskripsi**: Digunakan untuk mendapatkan data profil pengguna yang telah terautentikasi menggunakan **Access Token**.
 
-**URL:** `https://gebyokkudus.kuduskab.go.id/api/user-sso`  
-**Method:** `GET`  
-**Deskripsi:** Setelah mendapatkan `access token`, gunakan endpoint ini untuk mengambil data profil pengguna yang telah terautentikasi.
+#### **Headers**
+| Header           | Wajib | Deskripsi                                      |
+|-------------------|-------|-----------------------------------------------|
+| `Authorization`   | Ya    | Bearer token yang valid (`Bearer <access_token>`) |
 
-**Headers:**
-
-| Header             | Wajib | Deskripsi                                    |
-|--------------------|-------|----------------------------------------------|
-| `Authorization`    | Ya    | `Bearer` diikuti dengan `access token` valid |
-
-**Contoh Permintaan (Menggunakan `curl`):**
-
+#### **Contoh Permintaan**
 ```bash
 curl -X GET "https://gebyokkudus.kuduskab.go.id/api/user-sso" \
--H "Authorization: Bearer ISI_DENGAN_ACCESS_TOKEN"
+-H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
 ```
 
-**Contoh Respons:**
-
+#### **Contoh Respons**
 ```json
 {
     "id": 41,
@@ -132,38 +120,30 @@ curl -X GET "https://gebyokkudus.kuduskab.go.id/api/user-sso" \
 }
 ```
 
-**Penjelasan Struktur Respons:**
-
-| Field             | Tipe Data        | Deskripsi                                                                 |
-|-------------------|------------------|---------------------------------------------------------------------------|
-| `id`              | Integer          | ID unik pengguna dalam sistem.                                           |
-| `name`            | String           | Nama lengkap pengguna.                                                   |
-| `email`           | String           | Alamat email utama pengguna.                                             |
-| `nip`             | String           | Nomor Induk Pegawai pengguna atau `-` jika tidak tersedia.               |
-| `email_pp`        | Array of String  | Daftar alamat email tambahan pengguna, jika ada.                         |
-| `no_hp`           | String           | Nomor telepon pengguna.                                                  |
-| `kd_satker`       | String           | Kode satuan kerja pengguna.                                              |
-| `nama_satker`     | String           | Nama satuan kerja pengguna.                                              |
-| `email_verified_at`| String/Null     | Tanggal dan waktu verifikasi email, `null` jika belum diverifikasi.      |
-| `created_at`      | String           | Tanggal dan waktu pembuatan akun, dalam format ISO 8601.                 |
-| `updated_at`      | String           | Tanggal dan waktu terakhir pembaruan data akun, dalam format ISO 8601.   |
-| `role`            | String           | Peran atau jabatan pengguna dalam sistem.                                |
+#### **Penjelasan Struktur Respons**
+| Field              | Tipe Data      | Deskripsi                                      |
+|--------------------|----------------|-----------------------------------------------|
+| `id`               | Integer        | ID unik pengguna.                             |
+| `name`             | String         | Nama lengkap pengguna.                        |
+| `email`            | String         | Alamat email utama pengguna.                  |
+| `nip`              | String         | Nomor Induk Pegawai atau `-` jika tidak ada.  |
+| `email_pp`         | Array of String| Daftar email relasi Pejabat Pengadaan pengguna.               |
+| `no_hp`            | String         | Nomor telepon pengguna.                       |
+| `kd_satker`        | String         | Kode satuan kerja pengguna.                   |
+| `nama_satker`      | String         | Nama satuan kerja pengguna.                   |
+| `email_verified_at`| String/Null    | Waktu verifikasi email, `null` jika belum.    |
+| `created_at`       | String         | Waktu pembuatan akun (format ISO 8601).       |
+| `updated_at`       | String         | Waktu pembaruan terakhir data.                |
+| `role`             | String         | Peran pengguna dalam sistem.                  |
 
 ---
 
-### Panduan Penggunaan
+## **Panduan Penggunaan**
+1. **Dapatkan Authorization Code**  
+   Arahkan pengguna ke endpoint `/oauth/authorize` dengan parameter yang diperlukan.  
+2. **Tukar Authorization Code dengan Access Token**  
+   Kirimkan Authorization Code ke endpoint `/oauth/token` untuk mendapatkan Access Token.  
+3. **Akses Data Pengguna**  
+   Gunakan Access Token yang diterima untuk mengakses endpoint `/api/user-sso`.  
 
-1. **Dapatkan Authorization Code:**
-   - Arahkan pengguna ke endpoint `/oauth/authorize` dengan parameter yang sesuai.
-   - Pengguna akan diminta untuk login dan memberikan izin kepada aplikasi.
-
-2. **Tukar Authorization Code dengan Access Token:**
-   - Kirim permintaan POST ke endpoint `/oauth/token` untuk menukar kode otorisasi dengan `access token`.
-   - Token ini memungkinkan aplikasi client untuk mengakses endpoint terproteksi.
-
-3. **Gunakan Access Token untuk Mengakses Data Pengguna:**
-   - Gunakan `access token` yang diterima pada endpoint `/api/user-sso` untuk mendapatkan informasi profil pengguna.
-
---- 
-
-Dengan mengikuti panduan ini, aplikasi client dapat memanfaatkan autentikasi SSO yang aman dan terpusat pada Gebyok Kudus.
+Dengan mengikuti langkah-langkah di atas, aplikasi klien dapat menggunakan API SSO Gebyok Kudus secara aman dan efisien.
