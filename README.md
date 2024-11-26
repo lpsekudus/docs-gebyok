@@ -146,4 +146,162 @@ curl -X GET "https://gebyokkudus.kuduskab.go.id/api/user-sso" \
 3. **Akses Data Pengguna**  
    Gunakan Access Token yang diterima untuk mengakses endpoint `/api/user-sso`.  
 
+---
+
+### Dokumentasi Error API Gebyok Kudus
+
+Dokumentasi ini menjelaskan kemungkinan error yang dapat terjadi pada sistem Single Sign-On (SSO) menggunakan OAuth2 di Gebyok Kudus. Penanganan error yang tepat akan membantu klien untuk memberikan feedback yang jelas dan memudahkan proses debugging.
+
+
+### **Error pada Endpoint**
+
+#### 1. **Mendapatkan Authorization Code**
+   - Endpoint: `/oauth/authorize`
+   - Fungsi: Mengarahkan pengguna untuk login dan memberikan authorization code.
+   - **Kemungkinan Error**:
+
+     - **Invalid Client**  
+       - **Error Code**: `invalid_client`  
+       - **Deskripsi**: Kesalahan ini terjadi ketika aplikasi klien tidak dapat terautentikasi dengan benar di server OAuth.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "invalid_client",
+           "error_description": "Client authentication failed",
+           "message": "Client authentication failed"
+         }
+         ```
+
+     - **Invalid Redirect URI**  
+       - **Error Code**: `invalid_request`  
+       - **Deskripsi**: Redirect URI yang diberikan tidak sesuai atau tidak terdaftar di aplikasi klien.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "invalid_request",
+           "error_description": "Invalid redirect URI",
+           "message": "Invalid redirect URI"
+         }
+         ```
+
+     - **Invalid Scope**  
+       - **Error Code**: `invalid_scope`  
+       - **Deskripsi**: Scope yang diminta tidak valid atau tidak didukung oleh server OAuth.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "invalid_scope",
+           "error_description": "Scope is invalid",
+           "message": "Invalid scope requested"
+         }
+         ```
+
+#### 2. **Mendapatkan Access Token**
+   - Endpoint: `/oauth/token`
+   - Fungsi: Mengambil token akses dengan menggunakan authorization code.
+   - **Kemungkinan Error**:
+
+     - **Invalid Grant**  
+       - **Error Code**: `invalid_grant`  
+       - **Deskripsi**: Kesalahan ini terjadi jika authorization code yang diberikan tidak valid atau sudah kadaluarsa.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "invalid_grant",
+           "error_description": "The provided authorization grant is invalid, expired, or revoked",
+           "message": "Authorization grant is invalid or expired"
+         }
+         ```
+
+     - **Invalid Client**  
+       - **Error Code**: `invalid_client`  
+       - **Deskripsi**: Klien gagal dalam autentikasi karena informasi `client_id` atau `client_secret` yang salah.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "invalid_client",
+           "error_description": "Client authentication failed",
+           "message": "Client authentication failed"
+         }
+         ```
+
+     - **Missing Client Credentials**  
+       - **Error Code**: `invalid_request`  
+       - **Deskripsi**: Tidak ada `client_id` atau `client_secret` yang diberikan pada permintaan.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "invalid_request",
+           "error_description": "Missing client credentials",
+           "message": "Client credentials are required"
+         }
+         ```
+
+     - **Unauthorized Client**  
+       - **Error Code**: `unauthorized_client`  
+       - **Deskripsi**: Klien tidak diizinkan untuk menggunakan grant type yang diminta.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "unauthorized_client",
+           "error_description": "The client is not authorized to use this grant type",
+           "message": "Client is unauthorized for this grant type"
+         }
+         ```
+
+#### 3. **Mengakses Data Pengguna**
+   - Endpoint: `/api/user-sso`
+   - Fungsi: Mengakses data pengguna yang telah login dengan token akses.
+   - **Kemungkinan Error**:
+
+     - **Unauthorized**  
+       - **Error Code**: `unauthorized`  
+       - **Deskripsi**: Token akses tidak valid atau tidak ada token akses dalam permintaan.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "unauthorized",
+           "error_description": "Access token is missing or invalid",
+           "message": "Unauthorized access. Please check your access token."
+         }
+         ```
+
+     - **Token Expired**  
+       - **Error Code**: `token_expired`  
+       - **Deskripsi**: Token akses yang digunakan telah kadaluarsa.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "token_expired",
+           "error_description": "The access token has expired",
+           "message": "Access token has expired. Please reauthorize."
+         }
+         ```
+
+     - **Insufficient Scope**  
+       - **Error Code**: `insufficient_scope`  
+       - **Deskripsi**: Token akses yang diberikan tidak memiliki izin untuk mengakses data yang diminta.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "insufficient_scope",
+           "error_description": "The access token does not have sufficient scope",
+           "message": "You do not have sufficient scope to access this data"
+         }
+         ```
+
+     - **Internal Server Error**  
+       - **Error Code**: `server_error`  
+       - **Deskripsi**: Terjadi kesalahan pada server saat memproses permintaan.
+       - **Pesan**:  
+         ```json
+         {
+           "error": "server_error",
+           "error_description": "Internal server error",
+           "message": "An internal server error occurred. Please try again later."
+         }
+         ```
+
+---
+
 Dengan mengikuti langkah-langkah di atas, aplikasi klien dapat menggunakan API SSO Gebyok Kudus secara aman dan efisien.
